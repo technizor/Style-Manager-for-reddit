@@ -1,0 +1,14 @@
+{
+  "target": {
+    "subreddit": ""
+  },
+  "stylesheet": {
+    "file": "",
+    "encoding": "utf8"
+  },
+  "snoowrap": {
+    "userAgent": "node:subredditupdater:v0.0.1 (by /u/<Your Username>)",
+    "clientId": "",
+    "clientSecret": ""
+  }
+}
