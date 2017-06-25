@@ -13,19 +13,28 @@ const promised = (obj) => {
 const reductor = (keys) => (obj, val, index) => Object.assign(obj, { [keys[index]]: val });
 
 // Snoowrap Client
-const client = (config, oauth2) =>
+const client = (client, oauth2) =>
   new snoowrap({
-    userAgent: config.client.userAgent,
-    clientId: config.client.clientId,
-    clientSecret: config.client.clientSecret,
+    userAgent: client.userAgent,
+    clientId: client.clientId,
+    clientSecret: client.clientSecret,
     refreshToken: oauth2.refresh_token,
   });
 
 // File Loaders
 const loadConfig = (path) => {
   console.log(`Loading configuration from ${path}`);
-  return fse.readJson(path);
+  return fse.readJson(path)
 };
+
+const loadClientConfig = (config) => {
+  console.log(`Loading client configuration from ${config.client.file}`);
+  return fse.readJson(config.client.file)
+    .then((client) => promised({
+      config,
+      client,
+    }));
+}
 
 const loadOauth2 = (config) => {
   console.log(`Loading oauth2 credentials from ${config.oauth2.file}`);
@@ -34,8 +43,10 @@ const loadOauth2 = (config) => {
 
 const loadSettings = (configFile) =>
 loadConfig(configFile)
-.then((config) => promised({
+.then(loadClientConfig)
+.then(({ config, client }) => promised({
   config,
+  client,
   oauth2: loadOrRequestOauth2(config),
   stylesheet: loadStylesheet(config),
   }));
@@ -56,7 +67,7 @@ const loadOrRequestOauth2 = (config) =>
 
 const requestOauth2 = (config) =>
   reqOauth2.request({
-    clientId: config.client.clientId,
+    clientId: client.clientId,
     clientSecret: config.client.clientSecret,
     duration: config.oauth2.duration,
     scope: config.oauth2.scope,
@@ -67,8 +78,8 @@ const requestOauth2 = (config) =>
   );
 
 // Actions
-const deployStylesheet = ({config, oauth2, css}) =>
-  client(config, oauth2)
+const deployStylesheet = ({config, client, oauth2, css}) =>
+  client(client, oauth2)
   .getSubreddit(config.target.subreddit)
   .updateStylesheet({ reason: 'testing script 1', css });
 

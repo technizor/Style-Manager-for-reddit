@@ -1,6 +1,6 @@
 {
   "name": "style-manager-for-reddit",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "Style Management client for reddit",
   "author": "Sherman Ying <technizor@gmail.com>",
   "bin": {

@@ -7,12 +7,10 @@
     "encoding": "utf8"
   },
   "client": {
-    "userAgent": "node:stylemanager:v0.0.1 (by /u/<Your Username>)",
-    "clientId": "",
-    "clientSecret": ""
+    "file": "client.json"
   },
   "oauth2": {
-    "file": "./oauth2.json",
+    "file": "oauth2.json",
     "duration": "permanent",
     "scope": "modconfig modflair structuredstyles wikiedit wikiread",
     "timeout": 300,
