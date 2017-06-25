@@ -43,17 +43,16 @@ const request = (options) => new Promise((resolve, reject) => {
   const oauth2Url = url.format(oauth2Uri);
 
   const app = express();
-  app.get(redirectUrl.path, (req, res) => {
-    res.set('Connection', 'close');
-    res.send('oauth2 token received');
-    authorize(req);
-  });
+  app.get(redirectUrl.path, (req, res) => authorize(req, res));
 
   const server = app.listen(redirectUrl.port);
 
   const closer = (data) => {
     console.log('closing server...');
     server.close(() => console.log('server closed'));
+    if (req) {
+      timers.clearTimeout(req);
+    }
     return resolve(data);
   };
 
@@ -63,10 +62,12 @@ const request = (options) => new Promise((resolve, reject) => {
   opn(oauth2Url);
   console.log(`listening on ${redirectUrl.port}`);
 
-  const req = timers.setTimeout(() => {
-    server.close();
-    return reject(`No oauth2 response was received within ${opts.timeout} seconds. Aborting...`);
-  }, opts.timeout * 1000);
+  const req = timers.setTimeout(() =>
+    server.close(() =>
+      reject(`No oauth2 response was received within ${opts.timeout} seconds. Aborting...`)
+    ),
+    opts.timeout * 1000
+  );
 })
 
 const makeAuthorize = (options, closer) => (req, res) => {
@@ -79,7 +80,12 @@ const makeAuthorize = (options, closer) => (req, res) => {
     data: `grant_type=${options.grantType}&code=${code}&redirect_uri=${options.redirectUri}`
   };
 
-  client.post(options.refreshUri, args, (data, res) => closer(data));
+  client.post(options.refreshUri, args, (data, res2) => {
+    res.set('Connection', 'close');
+    res.send(data);
+
+    closer(data);
+  });
 }
 
 module.exports = {

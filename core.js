@@ -13,62 +13,62 @@ const promised = (obj) => {
 const reductor = (keys) => (obj, val, index) => Object.assign(obj, { [keys[index]]: val });
 
 // Snoowrap Client
-const client = (client, oauth2) =>
+const client = ({ config, clientConfig, oauth2 }) =>
   new snoowrap({
-    userAgent: client.userAgent,
-    clientId: client.clientId,
-    clientSecret: client.clientSecret,
+    userAgent: config.client.userAgent,
+    clientId: clientConfig.clientId,
+    clientSecret: clientConfig.clientSecret,
     refreshToken: oauth2.refresh_token,
   });
 
 // File Loaders
 const loadConfig = (path) => {
   console.log(`Loading configuration from ${path}`);
-  return fse.readJson(path)
+  return fse.readJson(path).then(config => ({ config }));
 };
 
-const loadClientConfig = (config) => {
+const loadClientConfig = ({ config }) => {
   console.log(`Loading client configuration from ${config.client.file}`);
   return fse.readJson(config.client.file)
-    .then((client) => promised({
+    .then((clientConfig) => promised({
       config,
-      client,
+      clientConfig,
     }));
 }
 
-const loadOauth2 = (config) => {
+const loadOauth2 = ({ config }) => {
   console.log(`Loading oauth2 credentials from ${config.oauth2.file}`);
   return fse.readJson(config.oauth2.file);
 }
 
 const loadSettings = (configFile) =>
-loadConfig(configFile)
-.then(loadClientConfig)
-.then(({ config, client }) => promised({
-  config,
-  client,
-  oauth2: loadOrRequestOauth2(config),
-  stylesheet: loadStylesheet(config),
+  loadConfig(configFile)
+  .then(loadClientConfig)
+  .then(({ config, clientConfig }) => promised({
+    config,
+    clientConfig,
+    oauth2: loadOrRequestOauth2({ config, clientConfig }),
+    stylesheet: loadStylesheet({ config }),
   }));
 
-const loadStylesheet = (config) => {
-console.log(`Loading stylesheet at ${config.stylesheet.file}`);
-fse.readFile(config.stylesheet.file, config.stylesheet.encoding)
-  .then(stripBom);
+const loadStylesheet = ({ config }) => {
+  console.log(`Loading stylesheet at ${config.stylesheet.file}`);
+  fse.readFile(config.stylesheet.file, config.stylesheet.encoding)
+    .then(stripBom);
 }
 
 // Oauth2 Requester
-const loadOrRequestOauth2 = (config) =>
-  loadOauth2(config)
+const loadOrRequestOauth2 = ({ config, clientConfig }) =>
+  loadOauth2({ config })
   .catch(error =>  {
     console.log('No oauth2 credentials found. Requesting credentials from Reddit.com');
-    return requestOauth2(config);
+    return requestOauth2({ config, clientConfig });
   });
 
-const requestOauth2 = (config) =>
+const requestOauth2 = ({ config, clientConfig }) =>
   reqOauth2.request({
-    clientId: client.clientId,
-    clientSecret: config.client.clientSecret,
+    clientId: clientConfig.clientId,
+    clientSecret: clientConfig.clientSecret,
     duration: config.oauth2.duration,
     scope: config.oauth2.scope,
   })
@@ -78,15 +78,15 @@ const requestOauth2 = (config) =>
   );
 
 // Actions
-const deployStylesheet = ({config, client, oauth2, css}) =>
-  client(client, oauth2)
+const deployStylesheet = ({ config, clientConfig, oauth2, css }) =>
+  client({ config, clientConfig, oauth2 })
   .getSubreddit(config.target.subreddit)
   .updateStylesheet({ reason: 'testing script 1', css });
 
 const fullDeploy = configFile =>
   loadSettings(configFile)
   // .then(deployImages)
-  //.then(deployStylesheet)
+  .then(deployStylesheet)
   // .then(deployFlairs)
   // .then(deploySidebar)
   .then((res) => {
