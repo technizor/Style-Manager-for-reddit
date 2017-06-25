@@ -6,9 +6,15 @@
     "file": "",
     "encoding": "utf8"
   },
-  "snoowrap": {
-    "userAgent": "node:subredditupdater:v0.0.1 (by /u/<Your Username>)",
+  "client": {
+    "userAgent": "node:stylemanager:v0.0.1 (by /u/<Your Username>)",
     "clientId": "",
     "clientSecret": ""
+  },
+  "oauth2": {
+    "file": "./oauth2.json",
+    "duration": "permanent",
+    "scope": "modconfig modflair structuredstyles wikiedit wikiread",
+    "timeout": 300,
   }
 }
