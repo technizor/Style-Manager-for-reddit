@@ -12,7 +12,13 @@
   "oauth2": {
     "file": "oauth2.json",
     "duration": "permanent",
-    "scope": "modconfig modflair structuredstyles wikiedit wikiread",
+    "scope": [
+      "modconfig",
+      "modflair",
+      "structuredstyles",
+      "wikiedit",
+      "wikiread"
+    ],
     "timeout": 300,
   }
 }

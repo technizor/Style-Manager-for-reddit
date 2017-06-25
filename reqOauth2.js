@@ -6,6 +6,9 @@ const timers = require('timers');
 const url = require('url');
 const Client = require('node-rest-client').Client;
 
+const spacer = (str, val, index) =>
+  index > 0 ? `${str} ${val}`: `${val}`;
+
 const generateOptions = (options) => {
   const defaultOpts = {
     clientId: '',
@@ -14,7 +17,13 @@ const generateOptions = (options) => {
     oauth2Uri: 'https://www.reddit.com/api/v1/authorize',
     refreshUri: 'https://www.reddit.com/api/v1/access_token',
     duration: 'permanent',
-    scope: 'modconfig modflair structuredstyles wikiedit wikiread',
+    scope: [
+      'modconfig',
+      'modflair',
+      'structuredstyles',
+      'wikiedit',
+      'wikiread'
+    ],
     timeout: 5*60,
   };
 
@@ -38,7 +47,7 @@ const request = (options) => new Promise((resolve, reject) => {
     redirect_uri: opts.redirectUri,
     duration: opts.duration,
     state: opts.state,
-    scope: opts.scope,
+    scope: opts.scope.reduce(spacer, ""),
   };
   const oauth2Url = url.format(oauth2Uri);
 
